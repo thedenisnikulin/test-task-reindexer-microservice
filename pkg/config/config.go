@@ -18,7 +18,7 @@ type Config struct {
 func NewConfigYaml(yamlConfigPath string) (*Config, error) {
 	config := &Config{}
 
-	file, err := os.Open("configPath")
+	file, err := os.Open(yamlConfigPath)
 	if err != nil {
 		return nil, err
 	}
