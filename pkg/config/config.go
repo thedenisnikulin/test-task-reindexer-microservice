@@ -8,15 +8,21 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct {
+type DatabaseConnectionsConfig struct {
+	DatabaseConnections struct {
+		ReindexerDefault DbConfig `yaml:"reindexer_default"`} `yaml:"database_connections"`
+	
+}
+
+type DbConfig struct {
 	DbUser string `yaml:"user"`
 	DbPass string `yaml:"pass"`
 	DbAddr string `yaml:"addr"`
 	DbName string `yaml:"name"`
 }
 
-func NewConfigYaml(yamlConfigPath string) (*Config, error) {
-	config := &Config{}
+func NewConfigYaml(yamlConfigPath string) (*DbConfig, error) {
+	dbconnConfig := &DatabaseConnectionsConfig{}
 
 	file, err := os.Open(yamlConfigPath)
 	if err != nil {
@@ -26,33 +32,32 @@ func NewConfigYaml(yamlConfigPath string) (*Config, error) {
 
 	decoder := yaml.NewDecoder(file)
 
-	err = decoder.Decode(config)
+	err = decoder.Decode(dbconnConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return config, nil
+	return &dbconnConfig.DatabaseConnections.ReindexerDefault, nil
 
 }
 
-func NewConfigDotEnv(envConfigPath string) (*Config, error) {
+func NewConfigDotEnv(envConfigPath string) (*DbConfig, error) {
 	if err := godotenv.Load(envConfigPath); err != nil {
 		return nil, err
 	}
 
 	return NewConfigEnv()
 
-
 }
 
-func NewConfigEnv() (*Config, error) {
-	for _, k := range []string { "db_user", "db_pass", "db_addr", "db_name" } {
+func NewConfigEnv() (*DbConfig, error) {
+	for _, k := range []string{"db_user", "db_pass", "db_addr", "db_name"} {
 		if _, set := os.LookupEnv(k); !set {
 			return nil, errors.New("One or more environment variables are not set")
 		}
 	}
 
-	return &Config{
+	return &DbConfig{
 		DbUser: os.Getenv("db_user"),
 		DbPass: os.Getenv("db_pass"),
 		DbAddr: os.Getenv("db_pass"),
