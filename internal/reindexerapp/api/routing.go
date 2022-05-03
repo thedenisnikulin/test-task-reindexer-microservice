@@ -10,13 +10,12 @@ func SetRoutes(handler *Handler, r *mux.Router) {
 		Headers("Content-Type", "application/json")
 
 	r.HandleFunc("/authors/all/{qty}/{page}", handler.GetAllAuthors).
-		Methods("GET").
-		Headers("Content-Type", "application/json")
+		Methods("GET")
 
 	r.HandleFunc("/authors", handler.CreateAuthor).
 		Methods("POST")
 
-	r.HandleFunc("/authors/{id}", handler.UpdateAuthor).
+	r.HandleFunc("/authors", handler.UpdateAuthor).
 		Methods("PUT")
 
 	r.HandleFunc("/authors/{id}", handler.DeleteAuthor).

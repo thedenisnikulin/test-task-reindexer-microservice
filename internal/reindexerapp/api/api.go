@@ -19,7 +19,7 @@ type Handler struct {
 }
 
 func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
-	var authorReqBody AuthorReqBody
+	var authorReqBody CreateAuthorReqBody
 	var authorModel models.Author
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
@@ -40,7 +40,7 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -62,8 +62,8 @@ func (h *Handler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	qty, err1 := strconv.ParseInt(vars["qty"], 10, 32)
-	page, err2 := strconv.ParseInt(vars["page"], 10, 32)
+	qty, err1 := strconv.Atoi(vars["qty"])
+	page, err2 := strconv.Atoi(vars["page"])
 	if err1 != nil || err2 != nil {
 		http.Error(w, fmt.Sprintf("%v; %v", err1, err2), http.StatusBadRequest)
 		return
@@ -84,9 +84,51 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
+	var authorReqBody UpdateAuthorReqBody
+	var authorModel models.Author
 
+	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	copier.Copy(&authorModel, &authorReqBody)
+
+	updated, err := h.Db.Update(reindexerapp.DbAuthorsNamespaceName, authorModel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if updated == 0 {
+		http.Error(w, "No item was updated.", http.StatusNotModified)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	deleted, err := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
+		WhereInt("id", reindexer.EQ, id).
+		Delete()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if deleted == 0 {
+		http.Error(w, "No item was deleted", http.StatusNotModified)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
