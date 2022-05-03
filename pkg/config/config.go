@@ -8,10 +8,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type DatabaseConnectionsConfig struct {
-	DatabaseConnections struct {
-		ReindexerDefault DbConfig `yaml:"reindexer_default"`} `yaml:"database_connections"`
-	
+
+// TODO use viper later
+
+type Config struct {
+	ServerConfig ServerConfig
+	DbConfig     DbConfig
+}
+
+type ServerConfig struct {
+	Addr string `yaml:"addr"`
 }
 
 type DbConfig struct {
@@ -21,8 +27,15 @@ type DbConfig struct {
 	DbName string `yaml:"name"`
 }
 
-func NewConfigYaml(yamlConfigPath string) (*DbConfig, error) {
-	dbconnConfig := &DatabaseConnectionsConfig{}
+type rootConfig struct {
+	serverConfig        ServerConfig `yaml:"server"`
+	databaseConnections struct {
+		ReindexerDefault DbConfig `yaml:"reindexer_default"`
+	} `yaml:"database_connections"`
+}
+
+func NewConfigYaml(yamlConfigPath string) (*Config, error) {
+	rootConfig := &rootConfig{}
 
 	file, err := os.Open(yamlConfigPath)
 	if err != nil {
@@ -32,16 +45,18 @@ func NewConfigYaml(yamlConfigPath string) (*DbConfig, error) {
 
 	decoder := yaml.NewDecoder(file)
 
-	err = decoder.Decode(dbconnConfig)
+	err = decoder.Decode(rootConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dbconnConfig.DatabaseConnections.ReindexerDefault, nil
+	return &Config{
+		ServerConfig: rootConfig.serverConfig,
+		DbConfig:     rootConfig.databaseConnections.ReindexerDefault}, nil
 
 }
 
-func NewConfigDotEnv(envConfigPath string) (*DbConfig, error) {
+func NewConfigDotEnv(envConfigPath string) (*Config, error) {
 	if err := godotenv.Load(envConfigPath); err != nil {
 		return nil, err
 	}
@@ -50,17 +65,22 @@ func NewConfigDotEnv(envConfigPath string) (*DbConfig, error) {
 
 }
 
-func NewConfigEnv() (*DbConfig, error) {
-	for _, k := range []string{"db_user", "db_pass", "db_addr", "db_name"} {
+func NewConfigEnv() (*Config, error) {
+	for _, k := range []string{"srv_addr", "db_user", "db_pass", "db_addr", "db_name"} {
 		if _, set := os.LookupEnv(k); !set {
 			return nil, errors.New("One or more environment variables are not set")
 		}
 	}
 
-	return &DbConfig{
-		DbUser: os.Getenv("db_user"),
-		DbPass: os.Getenv("db_pass"),
-		DbAddr: os.Getenv("db_pass"),
-		DbName: os.Getenv("db_name"),
+	return &Config{
+		ServerConfig: ServerConfig{
+			Addr: os.Getenv("srv_addr"),
+		},
+		DbConfig: DbConfig{
+			DbUser: os.Getenv("db_user"),
+			DbPass: os.Getenv("db_pass"),
+			DbAddr: os.Getenv("db_pass"),
+			DbName: os.Getenv("db_name"),
+		},
 	}, nil
 }

@@ -3,17 +3,16 @@ package main
 import (
 	"net/http"
 	"reind01/internal/reindexerapp/api"
-	"fmt"
 	"reind01/internal/reindexerapp/models"
 	"reind01/pkg/config"
 	"reind01/pkg/db"
 
 	"github.com/restream/reindexer"
-	//"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	var cfg *config.DbConfig
+	var cfg *config.Config
 	dotEnvPath := ".env"
 	configYamlPath := "config.yml"
 
@@ -29,7 +28,7 @@ func main() {
 	}
 
 
-	database := db.OpenDb(cfg)
+	database := db.OpenDb(&cfg.DbConfig)
 
 	if err := database.Ping(); err != nil {
 		panic(err)
@@ -49,7 +48,7 @@ func main() {
 
 	server := http.Server{
 		Handler: router,
-		Addr:    "127.0.0.1:8000", // TODO from config
+		Addr:    cfg.ServerConfig.Addr,
 	}
 
 	server.ListenAndServe()
