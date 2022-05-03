@@ -5,10 +5,10 @@ import (
 	"reind01/internal/reindexerapp/api"
 	"reind01/internal/reindexerapp/models"
 	"reind01/pkg/config"
-	"reind01/pkg/db"
+	database "reind01/pkg/db"
 
-	"github.com/restream/reindexer"
 	"github.com/gorilla/mux"
+	"github.com/restream/reindexer"
 )
 
 func main() {
@@ -27,24 +27,25 @@ func main() {
 		}
 	}
 
+	db := database.OpenDb(&cfg.DbConfig)
+	defer db.Close()
 
-	database := db.OpenDb(&cfg.DbConfig)
-
-	if err := database.Ping(); err != nil {
+	if err := db.Ping(); err != nil {
 		panic(err)
 	}
 
-	found, err := database.HasNamespace("authors")
+	found, err := db.HasNamespace("authors")
 	if err != nil {
 		panic(err)
 	}
 	if !found {
-		database.OpenNamespace("authors", reindexer.DefaultNamespaceOptions(), models.Author{})
+		db.OpenNamespace("authors", reindexer.DefaultNamespaceOptions(), models.Author{})
 	}
 
+	handler := api.Handler{Db: &db}
 
 	router := mux.NewRouter()
-	api.SetRoutes(router)
+	api.SetRoutes(&handler, router)
 
 	server := http.Server{
 		Handler: router,

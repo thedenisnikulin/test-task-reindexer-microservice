@@ -28,8 +28,8 @@ type DbConfig struct {
 }
 
 type rootConfig struct {
-	serverConfig        ServerConfig `yaml:"server"`
-	databaseConnections struct {
+	ServerConfig        ServerConfig `yaml:"server"`
+	DatabaseConnections struct {
 		ReindexerDefault DbConfig `yaml:"reindexer_default"`
 	} `yaml:"database_connections"`
 }
@@ -51,9 +51,8 @@ func NewConfigYaml(yamlConfigPath string) (*Config, error) {
 	}
 
 	return &Config{
-		ServerConfig: rootConfig.serverConfig,
-		DbConfig:     rootConfig.databaseConnections.ReindexerDefault}, nil
-
+		ServerConfig: rootConfig.ServerConfig,
+		DbConfig:     rootConfig.DatabaseConnections.ReindexerDefault}, nil
 }
 
 func NewConfigDotEnv(envConfigPath string) (*Config, error) {
