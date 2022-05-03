@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/restream/reindexer"
 	"reind01/pkg/config"
-	//_ "github.com/restream/reindexer/bindings/builtin"
 )
 
 type Db struct {

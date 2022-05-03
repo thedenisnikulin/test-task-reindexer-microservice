@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"reind01/internal/reindexerapp"
 	"reind01/internal/reindexerapp/api"
 	"reind01/internal/reindexerapp/models"
 	"reind01/pkg/config"
@@ -34,13 +35,25 @@ func main() {
 		panic(err)
 	}
 
-	found, err := db.HasNamespace("authors")
-	if err != nil {
-		panic(err)
-	}
-	if !found {
-		db.OpenNamespace("authors", reindexer.DefaultNamespaceOptions(), models.Author{})
-	}
+	db.OpenNamespace(
+		reindexerapp.DbAuthorsNamespaceName,
+		reindexer.DefaultNamespaceOptions(),
+		models.Author{})
+
+
+	// for i := int64(0); i < 50; i++ {
+	// 	db.Insert(reindexerapp.DbAuthorsNamespaceName, &models.Author{
+	// 		Id: i,
+	// 		Name: fmt.Sprintf("name #%v", i),
+	// 		Age: int(i) + rand.Int(),
+	// 		Articles: []*models.Article{{
+	// 			Id: i + rand.Int63(),
+	// 			Title: fmt.Sprintf("damn #%v", i),
+	// 			Body: fmt.Sprintf("Some body %v", i),
+	// 		}},
+	// 	})
+	// }
+
 
 	handler := api.Handler{Db: &db}
 
