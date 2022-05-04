@@ -3,15 +3,14 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
+	"github.com/restream/reindexer"
 	"net/http"
 	"reind01/internal/reindexerapp"
 	"reind01/internal/reindexerapp/models"
 	"reind01/pkg/db"
 	"strconv"
-
-	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
-	"github.com/restream/reindexer"
 )
 
 type Handler struct {
@@ -49,7 +48,7 @@ func (h *Handler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 	author, found := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
 		WhereInt("id", reindexer.EQ, int(id)).
 		Get()
-	
+
 	author = author.(*models.Author)
 
 	if !found {
@@ -70,10 +69,10 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 	}
 
 	it := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
-		Offset(int(qty * (page - 1) + 1)).
+		Offset(int(qty*(page-1) + 1)).
 		Limit(int(qty)).
 		Exec()
-	
+
 	authors := make([]*models.Author, 0)
 
 	for it.Next() {
