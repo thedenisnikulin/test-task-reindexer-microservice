@@ -1,4 +1,4 @@
-package models
+package data
 
 type Author struct {
 	Id       int64      `reindex:"id,,pk"`

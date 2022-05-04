@@ -3,23 +3,21 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"reind01/internal/reindexerapp/data"
+	"strconv"
+
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/copier"
-	"github.com/restream/reindexer"
-	"net/http"
-	"reind01/internal/reindexerapp"
-	"reind01/internal/reindexerapp/models"
-	"reind01/pkg/db"
-	"strconv"
 )
 
 type Handler struct {
-	Db *db.Db
+	Repo *data.AuthorRepository
 }
 
 func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	var authorReqBody CreateAuthorReqBody
-	var authorModel models.Author
+	var authorModel data.Author
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -32,7 +30,11 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Db.Insert(reindexerapp.DbAuthorsNamespaceName, &authorModel)
+	err = h.Repo.Create(&authorModel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -45,11 +47,7 @@ func (h *Handler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	author, found := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
-		WhereInt("id", reindexer.EQ, int(id)).
-		Get()
-
-	author = author.(*models.Author)
+	author, found := h.Repo.FindOne(int64(id))
 
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
@@ -68,23 +66,14 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	it := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
-		Offset(int(qty*(page-1) + 1)).
-		Limit(int(qty)).
-		Exec()
-
-	authors := make([]*models.Author, 0)
-
-	for it.Next() {
-		authors = append(authors, it.Object().(*models.Author))
-	}
+	authors := h.Repo.GetAll(qty, page)
 
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	var authorReqBody UpdateAuthorReqBody
-	var authorModel models.Author
+	var authorModel data.Author
 
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
@@ -94,14 +83,9 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 
 	copier.Copy(&authorModel, &authorReqBody)
 
-	updated, err := h.Db.Update(reindexerapp.DbAuthorsNamespaceName, authorModel)
+	err = h.Repo.Update(&authorModel)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if updated == 0 {
-		http.Error(w, "No item was updated.", http.StatusNotModified)
 		return
 	}
 
@@ -116,16 +100,10 @@ func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleted, err := h.Db.Query(reindexerapp.DbAuthorsNamespaceName).
-		WhereInt("id", reindexer.EQ, id).
-		Delete()
+	err = h.Repo.Delete(int64(id))
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if deleted == 0 {
-		http.Error(w, "No item was deleted", http.StatusNotModified)
 		return
 	}
 

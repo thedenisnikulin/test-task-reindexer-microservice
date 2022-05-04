@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"reind01/internal/reindexerapp"
 	"reind01/internal/reindexerapp/api"
-	"reind01/internal/reindexerapp/models"
+	"reind01/internal/reindexerapp/data"
 	"reind01/pkg/config"
 	database "reind01/pkg/db"
 
+	"github.com/coocood/freecache"
 	"github.com/gorilla/mux"
 	"github.com/restream/reindexer"
 )
@@ -38,8 +39,9 @@ func main() {
 	db.OpenNamespace(
 		reindexerapp.DbAuthorsNamespaceName,
 		reindexer.DefaultNamespaceOptions(),
-		models.Author{})
+		data.Author{})
 
+	cache := freecache.NewCache(reindexerapp.CacheSizeInBytes)
 
 	// for i := int64(0); i < 50; i++ {
 	// 	db.Insert(reindexerapp.DbAuthorsNamespaceName, &models.Author{
@@ -54,8 +56,8 @@ func main() {
 	// 	})
 	// }
 
-
-	handler := api.Handler{Db: &db}
+	repo := data.AuthorRepository{Db: &db, Cache: cache}
+	handler := api.Handler{Repo: &repo}
 
 	router := mux.NewRouter()
 	api.SetRoutes(&handler, router)
