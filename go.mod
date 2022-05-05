@@ -16,6 +16,7 @@ require (
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/restream/reindexer v4.2.1+incompatible // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

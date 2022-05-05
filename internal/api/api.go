@@ -74,6 +74,7 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 	res.Authors = make([]*internal.GetAllAuthorsResponsePartial, len(authors))
 
 	ch := make(chan *internal.GetAllAuthorsResponsePartial)
+
 	for i := 0; i < len(res.Authors); i++ {
 		go services.Process(authors[i], ch)
 	}

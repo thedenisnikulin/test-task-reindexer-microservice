@@ -8,11 +8,13 @@ import (
 
 	"github.com/coocood/freecache"
 	"github.com/restream/reindexer"
+	"github.com/sirupsen/logrus"
 )
 
 type AuthorRepository struct {
 	Db    *infra.Db
 	Cache *freecache.Cache
+	Log   *logrus.Logger
 }
 
 func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
@@ -36,7 +38,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 
 	err = r.Cache.Set(key, marshaled, CacheTtlInSecs)
 	if err != nil {
-		// TODO log cache set failed
+		r.Log.Warnf("Cache couldn't be set, id=%v", id)
 	}
 
 	return model, found
@@ -79,7 +81,7 @@ func (r *AuthorRepository) Create(model *Author) error {
 func (r *AuthorRepository) Update(model *Author) error {
 	deleted := r.Cache.Del([]byte(fmt.Sprintf("%v", model.Id)))
 	if !deleted {
-		// TODO log
+		r.Log.Warnf("Cache couldn't be deleted, id=%v", model.Id)
 	}
 
 	updatedItems, err := r.Db.Update(DbAuthorsNamespaceName, model)
@@ -99,7 +101,7 @@ func (r *AuthorRepository) Delete(id int64) error {
 	affected := r.Cache.Del([]byte(fmt.Sprintf("%v", id)))
 
 	if !affected {
-		// TODO log
+		r.Log.Warnf("Cache couldn't be deleted, id=%v", id)
 	}
 
 	deletedItems, err := r.Db.Query(DbAuthorsNamespaceName).

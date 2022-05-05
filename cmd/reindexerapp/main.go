@@ -9,6 +9,7 @@ import (
 	"reind01/internal/data"
 	database "reind01/internal/infra"
 
+	"github.com/sirupsen/logrus"
 	"github.com/coocood/freecache"
 	"github.com/gorilla/mux"
 	"github.com/restream/reindexer"
@@ -46,18 +47,21 @@ func main() {
 
 	for i := int64(0); i < 50; i++ {
 		db.Insert(data.DbAuthorsNamespaceName, &data.Author{
-			Id: i,
+			Id:   i,
 			Name: fmt.Sprintf("name #%v", i),
-			Age: int(i) + rand.Int(),
+			Age:  int(i) + rand.Int(),
 			Articles: []*data.Article{{
-				Id: i + rand.Int63(),
+				Id:    i + rand.Int63(),
 				Title: fmt.Sprintf("damn #%v", i),
-				Body: fmt.Sprintf("Some body %v", i),
+				Body:  fmt.Sprintf("Some body %v", i),
 			}},
 		})
 	}
 
-	repo := data.AuthorRepository{Db: &db, Cache: cache}
+	logger := logrus.New()
+	logger.SetReportCaller(true)
+
+	repo := data.AuthorRepository{Db: &db, Cache: cache, Log: logger}
 	handler := api.Handler{Repo: &repo}
 
 	router := mux.NewRouter()
