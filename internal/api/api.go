@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reind01/internal"
 	"reind01/internal/data"
+	"reind01/internal/services"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -16,7 +18,7 @@ type Handler struct {
 }
 
 func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
-	var authorReqBody CreateAuthorRequest
+	var authorReqBody internal.CreateAuthorRequest
 	var authorModel data.Author
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
@@ -68,11 +70,23 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 
 	authors := h.Repo.GetAll(qty, page)
 
-	json.NewEncoder(w).Encode(authors)
+	var res internal.GetAllAuthorsResponse
+	res.Authors = make([]*internal.GetAllAuthorsResponsePartial, len(authors))
+
+	ch := make(chan *internal.GetAllAuthorsResponsePartial)
+	for i := 0; i < len(res.Authors); i++ {
+		go services.Process(authors[i], ch)
+	}
+
+	for i := 0; i < len(res.Authors); i++ {
+		res.Authors[i] = <-ch
+	}
+
+	json.NewEncoder(w).Encode(res)
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
-	var authorReqBody UpdateAuthorRequest
+	var authorReqBody internal.UpdateAuthorRequest
 	var authorModel data.Author
 
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)

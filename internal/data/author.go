@@ -45,7 +45,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 	// TODO use transactions
 	it := r.Db.Query(DbAuthorsNamespaceName).
-		Offset(int(qty*(page-1) + 1)).
+		Offset(int(qty*(page-1)+1)).
 		Limit(int(qty)).
 		Sort("sort", true).
 		Exec()
@@ -60,13 +60,17 @@ func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 }
 
 func (r *AuthorRepository) Create(model *Author) error {
-	insertedItems, err := r.Db.Insert(DbAuthorsNamespaceName, &model)
+	insertedItems, err := r.Db.Insert(DbAuthorsNamespaceName, model,
+		"id=serial()",
+		"articles.id=serial()", // TODO joins
+		"sort=serial()")
 
 	if insertedItems != 1 {
 		return errors.New("Item was not created.")
 	}
 
-	if err != nil { return err
+	if err != nil {
+		return err // TODO
 	}
 
 	return nil
@@ -101,7 +105,6 @@ func (r *AuthorRepository) Delete(id int64) error {
 	deletedItems, err := r.Db.Query(DbAuthorsNamespaceName).
 		WhereInt64("id", reindexer.EQ, id).
 		Delete()
-
 
 	// TODO create aliases for the following errors & match them in http handler
 	// to make http status code more comprehensive

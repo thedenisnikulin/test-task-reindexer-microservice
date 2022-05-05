@@ -1,5 +1,7 @@
 package data
 
+// 2 level nestedness (collection of authors where each author contains a collection of articles)
+
 type Author struct {
 	Id       int64      `reindex:"id,,pk"`
 	Name     string     `reindex:"name"`

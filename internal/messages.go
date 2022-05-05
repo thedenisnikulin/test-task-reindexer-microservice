@@ -1,4 +1,4 @@
-package api
+package internal
 
 type CreateAuthorRequest struct {
 	Name     string `json:"name"`
@@ -21,6 +21,10 @@ type UpdateAuthorRequest struct {
 }
 
 type GetAllAuthorsResponse struct {
+	Authors []*GetAllAuthorsResponsePartial
+}
+
+type GetAllAuthorsResponsePartial struct {
 	Id       int    `json:"id"`
 	Name     string `json:"name"`
 	Articles []*struct {

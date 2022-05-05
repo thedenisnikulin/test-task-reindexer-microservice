@@ -7,8 +7,8 @@ import (
 	"github.com/jinzhu/copier"
 )
 
-func Process(model *data.Author, ch chan *internal.GetAllAuthorsResponse) {
-	var r internal.GetAllAuthorsResponse
-	copier.Copy(model, &r)
+func Process(model *data.Author, ch chan<- *internal.GetAllAuthorsResponsePartial) {
+	var r internal.GetAllAuthorsResponsePartial
+	copier.Copy(&r, model)
 	ch <- &r
 }
