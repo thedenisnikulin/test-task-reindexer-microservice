@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reind01/internal/reindexerapp"
-	"reind01/pkg/db"
+	"reind01/internal"
+	"reind01/internal/infra"
 
 	"github.com/coocood/freecache"
 	"github.com/restream/reindexer"
 )
 
 type AuthorRepository struct {
-	Db    *db.Db
+	Db    *infra.Db
 	Cache *freecache.Cache
 }
 
@@ -27,7 +27,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 		}
 	}
 
-	author, found := r.Db.Query(reindexerapp.DbAuthorsNamespaceName).
+	author, found := r.Db.Query(internal.DbAuthorsNamespaceName).
 		WhereInt("id", reindexer.EQ, int(id)).
 		Get()
 
@@ -35,7 +35,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 
 	marshaled, err := json.Marshal(model)
 
-	err = r.Cache.Set(key, marshaled, reindexerapp.CacheTtlInSecs)
+	err = r.Cache.Set(key, marshaled, internal.CacheTtlInSecs)
 	if err != nil {
 		// TODO log cache set failed
 	}
@@ -44,7 +44,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 }
 
 func (r *AuthorRepository) GetAll(qty, page int) []*Author {
-	it := r.Db.Query(reindexerapp.DbAuthorsNamespaceName).
+	it := r.Db.Query(internal.DbAuthorsNamespaceName).
 		Offset(int(qty*(page-1) + 1)).
 		Limit(int(qty)).
 		Sort("sort", true).
@@ -60,7 +60,7 @@ func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 }
 
 func (r *AuthorRepository) Create(model *Author) error {
-	insertedItems, err := r.Db.Insert(reindexerapp.DbAuthorsNamespaceName, &model)
+	insertedItems, err := r.Db.Insert(internal.DbAuthorsNamespaceName, &model)
 
 	if insertedItems != 1 {
 		return errors.New("Item was not created.")
@@ -79,7 +79,7 @@ func (r *AuthorRepository) Update(model *Author) error {
 		// TODO log
 	}
 
-	updatedItems, err := r.Db.Update(reindexerapp.DbAuthorsNamespaceName, model)
+	updatedItems, err := r.Db.Update(internal.DbAuthorsNamespaceName, model)
 
 	if updatedItems != 1 {
 		return errors.New("Item was not updated.")
@@ -99,7 +99,7 @@ func (r *AuthorRepository) Delete(id int64) error {
 		// TODO log
 	}
 
-	deletedItems, err := r.Db.Query(reindexerapp.DbAuthorsNamespaceName).
+	deletedItems, err := r.Db.Query(internal.DbAuthorsNamespaceName).
 		WhereInt64("id", reindexer.EQ, id).
 		Delete()
 

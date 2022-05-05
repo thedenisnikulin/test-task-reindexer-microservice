@@ -7,7 +7,6 @@ require github.com/joho/godotenv v1.4.0
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coocood/freecache v1.2.1 // indirect
-	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/snappy v0.0.4 // indirect

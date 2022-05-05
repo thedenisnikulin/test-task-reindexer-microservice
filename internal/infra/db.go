@@ -1,9 +1,9 @@
-package db
+package infra
 
 import (
 	"fmt"
 	"github.com/restream/reindexer"
-	"reind01/pkg/config"
+	"reind01/config"
 )
 
 type Db struct {

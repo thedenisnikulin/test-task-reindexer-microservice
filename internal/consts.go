@@ -1,4 +1,4 @@
-package reindexerapp
+package internal
 
 const (
 	DbAuthorsNamespaceName = "authors"

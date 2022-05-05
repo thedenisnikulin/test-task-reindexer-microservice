@@ -2,11 +2,11 @@ package main
 
 import (
 	"net/http"
-	"reind01/internal/reindexerapp"
-	"reind01/internal/reindexerapp/api"
-	"reind01/internal/reindexerapp/data"
-	"reind01/pkg/config"
-	database "reind01/pkg/db"
+	"reind01/internal"
+	"reind01/internal/api"
+	"reind01/internal/data"
+	"reind01/config"
+	database "reind01/internal/infra"
 
 	"github.com/coocood/freecache"
 	"github.com/gorilla/mux"
@@ -37,14 +37,14 @@ func main() {
 	}
 
 	db.OpenNamespace(
-		reindexerapp.DbAuthorsNamespaceName,
+		internal.DbAuthorsNamespaceName,
 		reindexer.DefaultNamespaceOptions(),
 		data.Author{})
 
-	cache := freecache.NewCache(reindexerapp.CacheSizeInBytes)
+	cache := freecache.NewCache(internal.CacheSizeInBytes)
 
 	// for i := int64(0); i < 50; i++ {
-	// 	db.Insert(reindexerapp.DbAuthorsNamespaceName, &models.Author{
+	// 	db.Insert(internal.DbAuthorsNamespaceName, &models.Author{
 	// 		Id: i,
 	// 		Name: fmt.Sprintf("name #%v", i),
 	// 		Age: int(i) + rand.Int(),

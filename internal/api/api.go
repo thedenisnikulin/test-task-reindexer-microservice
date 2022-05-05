@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reind01/internal/reindexerapp/data"
+	"reind01/internal/data"
 	"strconv"
 
 	"github.com/gorilla/mux"

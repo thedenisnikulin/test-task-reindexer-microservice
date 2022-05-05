@@ -1,4 +1,4 @@
-package db
+package internal
 
 type Repository[T any, K comparable] interface {
 	FindOne(id K) (*T, bool)
