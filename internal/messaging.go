@@ -1,4 +1,4 @@
-package api
+package internal
 
 type CreateAuthorRequest struct {
 	Name     string `json:"name"`

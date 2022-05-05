@@ -44,6 +44,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 }
 
 func (r *AuthorRepository) GetAll(qty, page int) []*Author {
+	// TODO use transactions
 	it := r.Db.Query(internal.DbAuthorsNamespaceName).
 		Offset(int(qty*(page-1) + 1)).
 		Limit(int(qty)).
@@ -66,8 +67,7 @@ func (r *AuthorRepository) Create(model *Author) error {
 		return errors.New("Item was not created.")
 	}
 
-	if err != nil {
-		return err
+	if err != nil { return err
 	}
 
 	return nil

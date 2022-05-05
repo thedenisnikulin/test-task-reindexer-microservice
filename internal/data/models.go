@@ -11,5 +11,5 @@ type Author struct {
 type Article struct {
 	Id    int64  `reindex:"id"`
 	Title string `reindex:"title"`
-	Body  string `reindex:"body"`
+	Body  string `reindex:"body,text"`
 }
