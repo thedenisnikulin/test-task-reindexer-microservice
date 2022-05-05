@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reind01/internal"
 	"reind01/internal/infra"
 
 	"github.com/coocood/freecache"
@@ -27,7 +26,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 		}
 	}
 
-	author, found := r.Db.Query(internal.DbAuthorsNamespaceName).
+	author, found := r.Db.Query(DbAuthorsNamespaceName).
 		WhereInt("id", reindexer.EQ, int(id)).
 		Get()
 
@@ -35,7 +34,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 
 	marshaled, err := json.Marshal(model)
 
-	err = r.Cache.Set(key, marshaled, internal.CacheTtlInSecs)
+	err = r.Cache.Set(key, marshaled, CacheTtlInSecs)
 	if err != nil {
 		// TODO log cache set failed
 	}
@@ -45,7 +44,7 @@ func (r *AuthorRepository) FindOne(id int64) (*Author, bool) {
 
 func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 	// TODO use transactions
-	it := r.Db.Query(internal.DbAuthorsNamespaceName).
+	it := r.Db.Query(DbAuthorsNamespaceName).
 		Offset(int(qty*(page-1) + 1)).
 		Limit(int(qty)).
 		Sort("sort", true).
@@ -61,7 +60,7 @@ func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 }
 
 func (r *AuthorRepository) Create(model *Author) error {
-	insertedItems, err := r.Db.Insert(internal.DbAuthorsNamespaceName, &model)
+	insertedItems, err := r.Db.Insert(DbAuthorsNamespaceName, &model)
 
 	if insertedItems != 1 {
 		return errors.New("Item was not created.")
@@ -79,7 +78,7 @@ func (r *AuthorRepository) Update(model *Author) error {
 		// TODO log
 	}
 
-	updatedItems, err := r.Db.Update(internal.DbAuthorsNamespaceName, model)
+	updatedItems, err := r.Db.Update(DbAuthorsNamespaceName, model)
 
 	if updatedItems != 1 {
 		return errors.New("Item was not updated.")
@@ -99,7 +98,7 @@ func (r *AuthorRepository) Delete(id int64) error {
 		// TODO log
 	}
 
-	deletedItems, err := r.Db.Query(internal.DbAuthorsNamespaceName).
+	deletedItems, err := r.Db.Query(DbAuthorsNamespaceName).
 		WhereInt64("id", reindexer.EQ, id).
 		Delete()
 

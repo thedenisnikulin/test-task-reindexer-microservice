@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"reind01/internal"
 	"reind01/internal/api"
 	"reind01/internal/data"
 	"reind01/config"
@@ -37,14 +36,14 @@ func main() {
 	}
 
 	db.OpenNamespace(
-		internal.DbAuthorsNamespaceName,
+		data.DbAuthorsNamespaceName,
 		reindexer.DefaultNamespaceOptions(),
 		data.Author{})
 
-	cache := freecache.NewCache(internal.CacheSizeInBytes)
+	cache := freecache.NewCache(data.CacheSizeInBytes)
 
 	// for i := int64(0); i < 50; i++ {
-	// 	db.Insert(internal.DbAuthorsNamespaceName, &models.Author{
+	// 	db.Insert(data.DbAuthorsNamespaceName, &models.Author{
 	// 		Id: i,
 	// 		Name: fmt.Sprintf("name #%v", i),
 	// 		Age: int(i) + rand.Int(),
