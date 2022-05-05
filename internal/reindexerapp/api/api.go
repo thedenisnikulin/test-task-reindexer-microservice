@@ -16,7 +16,7 @@ type Handler struct {
 }
 
 func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
-	var authorReqBody CreateAuthorReqBody
+	var authorReqBody CreateAuthorRequest
 	var authorModel data.Author
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
@@ -72,7 +72,7 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
-	var authorReqBody UpdateAuthorReqBody
+	var authorReqBody UpdateAuthorRequest
 	var authorModel data.Author
 
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)

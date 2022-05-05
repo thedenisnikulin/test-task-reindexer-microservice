@@ -47,6 +47,7 @@ func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 	it := r.Db.Query(reindexerapp.DbAuthorsNamespaceName).
 		Offset(int(qty*(page-1) + 1)).
 		Limit(int(qty)).
+		Sort("sort", true).
 		Exec()
 
 	models := make([]*Author, 0)

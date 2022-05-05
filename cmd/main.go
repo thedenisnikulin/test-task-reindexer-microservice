@@ -68,4 +68,6 @@ func main() {
 	}
 
 	server.ListenAndServe()
+
+	// TODO add signal/interruption handling
 }

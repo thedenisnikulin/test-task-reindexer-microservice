@@ -5,6 +5,7 @@ type Author struct {
 	Name     string     `reindex:"name"`
 	Age      int        `reindex:"age"`
 	Articles []*Article `reindex:"articles"`
+	Sort     int        `reindex:"sort,tree"`
 }
 
 type Article struct {
