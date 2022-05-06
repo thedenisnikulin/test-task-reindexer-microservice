@@ -99,7 +99,11 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	copier.Copy(&authorModel, &authorReqBody)
 
 	err = h.Repo.Update(&authorModel)
-	if err != nil {
+	if err == data.NoItemsAffectedErr {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	} else if err == data.InternalServerErr {
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -117,7 +121,11 @@ func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
 
 	err = h.Repo.Delete(int64(id))
 
-	if err != nil {
+	if err == data.NoItemsAffectedErr {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	} else if err == data.InternalServerErr {
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

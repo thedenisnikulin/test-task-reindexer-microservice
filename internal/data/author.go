@@ -11,6 +11,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var InternalServerErr = errors.New("Internal server error.")
+var NoItemsAffectedErr = errors.New("No items affected error.")
+
 type AuthorRepository struct {
 	Db    *infra.Db
 	Cache *freecache.Cache
@@ -64,15 +67,15 @@ func (r *AuthorRepository) GetAll(qty, page int) []*Author {
 func (r *AuthorRepository) Create(model *Author) error {
 	insertedItems, err := r.Db.Insert(DbAuthorsNamespaceName, model,
 		"id=serial()",
-		"articles.id=serial()", // TODO joins
+		"articles.id=serial()",
 		"sort=serial()")
 
-	if insertedItems != 1 {
-		return errors.New("Item was not created.")
+	if err != nil {
+		return InternalServerErr
 	}
 
-	if err != nil {
-		return err // TODO
+	if insertedItems < 1 {
+		return NoItemsAffectedErr
 	}
 
 	return nil
@@ -86,12 +89,12 @@ func (r *AuthorRepository) Update(model *Author) error {
 
 	updatedItems, err := r.Db.Update(DbAuthorsNamespaceName, model)
 
-	if updatedItems != 1 {
-		return errors.New("Item was not updated.")
+	if updatedItems < 1 {
+		return NoItemsAffectedErr
 	}
 
 	if err != nil {
-		return err
+		return InternalServerErr
 	}
 
 	return nil
@@ -108,14 +111,12 @@ func (r *AuthorRepository) Delete(id int64) error {
 		WhereInt64("id", reindexer.EQ, id).
 		Delete()
 
-	// TODO create aliases for the following errors & match them in http handler
-	// to make http status code more comprehensive
-	if deletedItems != 1 {
-		return errors.New("Item was not deleted.")
+	if err != nil {
+		return InternalServerErr
 	}
 
-	if err != nil {
-		return err
+	if deletedItems < 1 {
+		return NoItemsAffectedErr
 	}
 
 	return nil
