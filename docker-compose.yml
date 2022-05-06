@@ -1,8 +1,12 @@
+version: '3.3'
+
 services:
   server:
     build: .
     ports:
-      - 8000:8000
+      - 9090:8000
 
   reindexer:
     image: "reindexer/reindexer"
+    ports:
+      - 6534:6534
