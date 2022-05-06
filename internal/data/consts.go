@@ -1,7 +1,8 @@
 package data
 
 const (
-	DbAuthorsNamespaceName = "authors"
-	CacheTtlInSecs = 60 * 15
-	CacheSizeInBytes = 1024 * 1024
+	DbAuthorsNamespaceName  = "authors"
+	DbArticlesNamespaceName = "articles"
+	CacheTtlInSecs          = 60 * 15
+	CacheSizeInBytes        = 1024 * 1024
 )

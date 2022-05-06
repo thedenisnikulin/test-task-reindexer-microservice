@@ -18,6 +18,7 @@ type UpdateAuthorRequest struct {
 		Title string `json:"title"`
 		Body  string `json:"body"`
 	} `json:"articles"`
+		Sort int `json:"sort"`
 }
 
 type GetAllAuthorsResponse struct {

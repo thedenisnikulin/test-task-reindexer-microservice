@@ -8,31 +8,24 @@ import (
 	"reind01/internal/data"
 	"reind01/internal/services"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
 )
 
 type Handler struct {
-	Repo Repository[data.Author, int64]
+	Repo AuthorRepository
 }
 
 func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	var authorReqBody internal.CreateAuthorRequest
-	var authorModel data.Author
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = copier.Copy(&authorModel, &authorReqBody)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	err = h.Repo.Create(&authorModel)
+	err = h.Repo.Create(&authorReqBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -74,21 +67,37 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 	res.Authors = make([]*internal.GetAllAuthorsResponsePartial, len(authors))
 
 	ch := make(chan *internal.GetAllAuthorsResponsePartial)
+	wg := new(sync.WaitGroup)
 
 	for i := 0; i < len(res.Authors); i++ {
-		go services.Process(authors[i], ch)
+		wg.Add(1)
+		go services.Process(authors[i], ch, wg)
 	}
 
-	for i := 0; i < len(res.Authors); i++ {
-		res.Authors[i] = <-ch
+	quit := make(chan bool)
+	go func() {
+		wg.Wait()
+		quit <- true
+	}()
+
+	for {
+		select {
+		case out := <-ch:
+			res.Authors = append(res.Authors, out)
+		case <-quit:
+			json.NewEncoder(w).Encode(res)
+			return
+		}
 	}
 
-	json.NewEncoder(w).Encode(res)
+	// for i := 0; i < len(res.Authors); i++ {
+	// 	res.Authors[i] = <-ch
+	// }
+
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	var authorReqBody internal.UpdateAuthorRequest
-	var authorModel data.Author
 
 	err := json.NewDecoder(r.Body).Decode(&authorReqBody)
 	if err != nil {
@@ -96,9 +105,7 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	copier.Copy(&authorModel, &authorReqBody)
-
-	err = h.Repo.Update(&authorModel)
+	err = h.Repo.Update(&authorReqBody)
 	if err == data.NoItemsAffectedErr {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

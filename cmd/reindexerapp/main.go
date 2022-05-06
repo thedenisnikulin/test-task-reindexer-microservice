@@ -1,18 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
 	"reind01/config"
 	"reind01/internal/api"
 	"reind01/internal/data"
 	database "reind01/internal/infra"
 
-	"github.com/sirupsen/logrus"
 	"github.com/coocood/freecache"
 	"github.com/gorilla/mux"
 	"github.com/restream/reindexer"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -43,20 +41,13 @@ func main() {
 		reindexer.DefaultNamespaceOptions(),
 		data.Author{})
 
+	db.OpenNamespace(
+		data.DbArticlesNamespaceName,
+		reindexer.DefaultNamespaceOptions(),
+		data.Article{})
+
 	cache := freecache.NewCache(data.CacheSizeInBytes)
 
-	for i := int64(0); i < 50; i++ {
-		db.Insert(data.DbAuthorsNamespaceName, &data.Author{
-			Id:   i,
-			Name: fmt.Sprintf("name #%v", i),
-			Age:  int(i) + rand.Int(),
-			Articles: []*data.Article{{
-				Id:    i + rand.Int63(),
-				Title: fmt.Sprintf("damn #%v", i),
-				Body:  fmt.Sprintf("Some body %v", i),
-			}},
-		})
-	}
 
 	logger := logrus.New()
 	logger.SetReportCaller(true)
