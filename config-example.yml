@@ -1,0 +1,8 @@
+server:
+  addr: "addr:port"
+database_connections:
+  reindexer_default:
+    user: ""
+    pass: ""
+    addr: "addr:port"
+    name: ""
