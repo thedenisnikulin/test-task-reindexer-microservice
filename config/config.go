@@ -9,8 +9,6 @@ import (
 )
 
 
-// TODO use viper later
-
 type Config struct {
 	ServerConfig ServerConfig
 	DbConfig     DbConfig
