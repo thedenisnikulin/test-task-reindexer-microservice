@@ -64,36 +64,23 @@ func (h *Handler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
 	authors := h.Repo.GetAll(qty, page)
 
 	var res internal.GetAllAuthorsResponse
-	res.Authors = make([]*internal.GetAllAuthorsResponsePartial, len(authors))
+	res.Authors = make([]*internal.GetAllAuthorsResponsePartial, 0)
 
-	ch := make(chan *internal.GetAllAuthorsResponsePartial)
 	wg := new(sync.WaitGroup)
+	channels := make([]chan *internal.GetAllAuthorsResponsePartial, len(authors))
 
-	for i := 0; i < len(res.Authors); i++ {
+	for i := 0; i < len(authors); i++ {
+		channels[i] = make(chan *internal.GetAllAuthorsResponsePartial)
 		wg.Add(1)
-		go services.Process(authors[i], ch, wg)
+		go services.Process(authors[i], channels[i], wg)
 	}
 
-	quit := make(chan bool)
-	go func() {
-		wg.Wait()
-		quit <- true
-	}()
-
-	for {
-		select {
-		case out := <-ch:
-			res.Authors = append(res.Authors, out)
-		case <-quit:
-			json.NewEncoder(w).Encode(res)
-			return
-		}
+	for i := 0; i < len(authors); i++ {
+		res.Authors = append(res.Authors, <- channels[i])
+		close(channels[i])
 	}
 
-	// for i := 0; i < len(res.Authors); i++ {
-	// 	res.Authors[i] = <-ch
-	// }
-
+	json.NewEncoder(w).Encode(res)
 }
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
